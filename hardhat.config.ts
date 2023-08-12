@@ -3,13 +3,10 @@ dotenv.config();
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 import "@nomicfoundation/hardhat-foundry";
-import "@nomiclabs/hardhat-etherscan";
+import "@nomicfoundation/hardhat-verify";
 import "hardhat-deploy";
 
-import "./tasks";
-import getNetworks from "./networks";
-
-const accounts = process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [""];
+import testnetConfig from "./testnet.config";
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -24,10 +21,16 @@ const config: HardhatUserConfig = {
   namedAccounts: {
     deployer: process.env.DEPLOYER || "",
   },
-  networks: Object.assign({}, getNetworks(accounts), {}),
+  networks: testnetConfig,
   etherscan: {
     apiKey: {
       mainnet: process.env.ETHERSCAN || "",
+      goerli: process.env.ETHERSCAN || "",
+      avalancheFujiTestnet: process.env.ETHERSCAN_AVAX || "",
+      polygonMumbai: process.env.ETHERSCAN_POLYGON || "",
+      arbitrumGoerli: process.env.ETHERSCAN_ARB || "",
+      baseGoerli: process.env.ETHERSCAN_BASE || "",
+      bscTestnet: process.env.ETHERSCAN_BSC || "",
     },
   },
 };

@@ -7,16 +7,21 @@ const func: DeployFunction = async function ({
 }) {
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
-
-  const block = await ethers.provider.getBlock("latest");
-  const unlockTime = block.timestamp + 24 * 60 * 60;
-
-  await deploy("Lock", {
+  await deploy("Faucet", {
     from: deployer,
-    args: [unlockTime],
+    proxy: {
+      proxyContract: "UUPS",
+      proxyArgs: ["{implementation}", "{data}"],
+      execute: {
+        init: {
+          methodName: "initialize",
+          args: [],
+        },
+      },
+    },
     log: true,
   });
 };
 
-func.tags = ["Lock"];
+func.tags = ["Facuet"];
 export default func;

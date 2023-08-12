@@ -7,7 +7,7 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20Metadat
 
 contract Faucet is OwnableUpgradeable, UUPSUpgradeable {
     uint256 public amount = 1000;
-    uint32 public delayTimeLang;
+    uint32 public delayTimeLang = 6 hours;
     mapping(address => uint256) private delayedExpiration;
     mapping(address => bool) private whitelist;
 
