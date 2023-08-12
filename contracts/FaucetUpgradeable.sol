@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.9;
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
 
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-
-contract Faucet is Ownable {
+contract FaucetUpgradeable is OwnableUpgradeable, UUPSUpgradeable {
     uint256 public amount = 1000;
     uint32 public delayTimeLang = 6 hours;
     mapping(address => uint256) private delayedExpiration;
@@ -16,14 +16,24 @@ contract Faucet is Ownable {
     event Mint(address token, address receiver, uint256 amount);
     event UpdateWhiteList(address account, bool isWhiteList);
 
+    function initialize() public initializer {
+        __Ownable_init();
+        __UUPSUpgradeable_init();
+    }
+
+    function _authorizeUpgrade(
+        address newImplementation
+    ) internal override onlyOwner {}
+
     function mint(address token) public {
         require(
             delayedExpiration[msg.sender] < block.timestamp,
             "time is not up"
         );
 
-        uint256 amountToMint = amount * 10 ** IERC20Metadata(token).decimals();
-        IERC20Metadata(token).transfer(_msgSender(), amountToMint);
+        uint256 amountToMint = amount *
+            10 ** IERC20MetadataUpgradeable(token).decimals();
+        IERC20Upgradeable(token).transfer(_msgSender(), amountToMint);
 
         delayedExpiration[msg.sender] = block.timestamp + delayTimeLang;
         emit Mint(token, msg.sender, amountToMint);
@@ -34,7 +44,7 @@ contract Faucet is Ownable {
         address receiver,
         uint256 _amount
     ) public onlyWhitelist {
-        IERC20(token).transfer(receiver, _amount);
+        IERC20Upgradeable(token).transfer(receiver, _amount);
 
         emit Mint(token, receiver, _amount);
     }

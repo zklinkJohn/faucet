@@ -7,7 +7,7 @@ const func: DeployFunction = async function ({
 }) {
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
-  await deploy("Faucet", {
+  await deploy("FaucetUpgradeable", {
     from: deployer,
     proxy: {
       proxyContract: "UUPS",
@@ -24,5 +24,5 @@ const func: DeployFunction = async function ({
   });
 };
 
-func.tags = ["Facuet"];
+func.tags = ["FaucetUpgradeable"];
 export default func;
