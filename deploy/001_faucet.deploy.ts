@@ -19,6 +19,7 @@ const func: DeployFunction = async function ({
         },
       },
     },
+    // deterministicDeployment: ethers.encodeBytes32String("Faucet"),
     log: true,
   });
 };
