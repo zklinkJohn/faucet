@@ -7,6 +7,7 @@ import "@nomicfoundation/hardhat-verify";
 import "hardhat-deploy";
 
 import testnetConfig from "./testnet.config";
+import etherscanConfig from "./etherscan.config";
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -22,17 +23,7 @@ const config: HardhatUserConfig = {
     deployer: process.env.DEPLOYER || "",
   },
   networks: testnetConfig,
-  etherscan: {
-    apiKey: {
-      mainnet: process.env.ETHERSCAN || "",
-      goerli: process.env.ETHERSCAN || "",
-      avalancheFujiTestnet: process.env.ETHERSCAN_AVAX || "",
-      polygonMumbai: process.env.ETHERSCAN_POLYGON || "",
-      arbitrumGoerli: process.env.ETHERSCAN_ARB || "",
-      baseGoerli: process.env.ETHERSCAN_BASE || "",
-      bscTestnet: process.env.ETHERSCAN_BSC || "",
-    },
-  },
+  etherscan: etherscanConfig,
 };
 
 export default config;

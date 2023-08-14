@@ -61,6 +61,7 @@ export default {
   "taiko-testnet": {
     url: "https://rpc.test.taiko.xyz",
     chainId: 167005,
+    gasMultiplier: 2,
     accounts: getAccounts(),
   },
 };

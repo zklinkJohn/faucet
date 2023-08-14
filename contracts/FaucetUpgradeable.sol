@@ -8,7 +8,8 @@ import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20Metadat
 contract FaucetUpgradeable is OwnableUpgradeable, UUPSUpgradeable {
     uint256 public amount = 1000;
     uint32 public delayTimeLang = 6 hours;
-    mapping(address => uint256) private delayedExpiration;
+    // Mapping from account => token => deplay
+    mapping(address => mapping(address => uint256)) private delayedExpiration;
     mapping(address => bool) private whitelist;
 
     uint256[49] __gap;
@@ -27,7 +28,7 @@ contract FaucetUpgradeable is OwnableUpgradeable, UUPSUpgradeable {
 
     function mint(address token) public {
         require(
-            delayedExpiration[msg.sender] < block.timestamp,
+            delayedExpiration[msg.sender][token] < block.timestamp,
             "time is not up"
         );
 
@@ -35,7 +36,7 @@ contract FaucetUpgradeable is OwnableUpgradeable, UUPSUpgradeable {
             10 ** IERC20MetadataUpgradeable(token).decimals();
         IERC20Upgradeable(token).transfer(_msgSender(), amountToMint);
 
-        delayedExpiration[msg.sender] = block.timestamp + delayTimeLang;
+        delayedExpiration[msg.sender][token] = block.timestamp + delayTimeLang;
         emit Mint(token, msg.sender, amountToMint);
     }
 
@@ -76,8 +77,11 @@ contract FaucetUpgradeable is OwnableUpgradeable, UUPSUpgradeable {
         return whitelist[account];
     }
 
-    function getDelayExpiration(address account) public view returns (uint256) {
-        return delayedExpiration[account];
+    function getDelayExpiration(
+        address account,
+        address token
+    ) public view returns (uint256) {
+        return delayedExpiration[account][token];
     }
 
     modifier onlyWhitelist() {

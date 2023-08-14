@@ -8,7 +8,8 @@ import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 contract Faucet is Ownable {
     uint256 public amount = 1000;
     uint32 public delayTimeLang = 6 hours;
-    mapping(address => uint256) private delayedExpiration;
+    // Mapping from account => token => deplay
+    mapping(address => mapping(address => uint256)) private delayedExpiration;
     mapping(address => bool) private whitelist;
 
     uint256[49] __gap;
@@ -18,14 +19,14 @@ contract Faucet is Ownable {
 
     function mint(address token) public {
         require(
-            delayedExpiration[msg.sender] < block.timestamp,
+            delayedExpiration[msg.sender][token] < block.timestamp,
             "time is not up"
         );
 
         uint256 amountToMint = amount * 10 ** IERC20Metadata(token).decimals();
         IERC20Metadata(token).transfer(_msgSender(), amountToMint);
 
-        delayedExpiration[msg.sender] = block.timestamp + delayTimeLang;
+        delayedExpiration[msg.sender][token] = block.timestamp + delayTimeLang;
         emit Mint(token, msg.sender, amountToMint);
     }
 
@@ -66,8 +67,11 @@ contract Faucet is Ownable {
         return whitelist[account];
     }
 
-    function getDelayExpiration(address account) public view returns (uint256) {
-        return delayedExpiration[account];
+    function getDelayExpiration(
+        address account,
+        address token
+    ) public view returns (uint256) {
+        return delayedExpiration[account][token];
     }
 
     modifier onlyWhitelist() {
