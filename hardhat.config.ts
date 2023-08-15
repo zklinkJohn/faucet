@@ -5,6 +5,7 @@ import "@nomicfoundation/hardhat-toolbox";
 import "@nomicfoundation/hardhat-foundry";
 import "@nomicfoundation/hardhat-verify";
 import "hardhat-deploy";
+import "./tasks";
 
 import testnetConfig from "./testnet.config";
 import etherscanConfig from "./etherscan.config";

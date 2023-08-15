@@ -3,19 +3,23 @@ pragma solidity ^0.8.9;
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
+import "zklink-contracts-interface/contracts/IZkLink.sol";
 
 contract FaucetUpgradeable is OwnableUpgradeable, UUPSUpgradeable {
     uint256 public amount = 1000;
     uint32 public delayTimeLang = 6 hours;
+    address public zklinkInstance;
     // Mapping from account => token => deplay
     mapping(address => mapping(address => uint256)) private delayedExpiration;
     mapping(address => bool) private whitelist;
-
-    uint256[49] __gap;
+    // Mapping from tokenId to mint amount
+    mapping(uint16 => uint256) private mintAmount;
+    uint256[48] __gap;
 
     event Mint(address token, address receiver, uint256 amount);
     event UpdateWhiteList(address account, bool isWhiteList);
+    event SetMintAmount(uint16 tokenId, uint256 mintAmount);
+    event SetZKLink(address zklinkInstance);
 
     function initialize() public initializer {
         __Ownable_init();
@@ -28,15 +32,16 @@ contract FaucetUpgradeable is OwnableUpgradeable, UUPSUpgradeable {
 
     function mint(address token) public {
         require(
-            delayedExpiration[msg.sender][token] < block.timestamp,
+            delayedExpiration[msg.sender][token] + delayTimeLang <
+                block.timestamp,
             "time is not up"
         );
 
-        uint256 amountToMint = amount *
-            10 ** IERC20MetadataUpgradeable(token).decimals();
+        uint16 tokenId = IZkLink(zklinkInstance).tokenIds(token);
+        uint256 amountToMint = mintAmount[tokenId];
         IERC20Upgradeable(token).transfer(_msgSender(), amountToMint);
 
-        delayedExpiration[msg.sender][token] = block.timestamp + delayTimeLang;
+        delayedExpiration[msg.sender][token] = block.timestamp;
         emit Mint(token, msg.sender, amountToMint);
     }
 
@@ -73,6 +78,22 @@ contract FaucetUpgradeable is OwnableUpgradeable, UUPSUpgradeable {
         delayTimeLang = _delayTimeLong;
     }
 
+    function setZKLinkInstance(address _zklinkInstance) public onlyOwner {
+        zklinkInstance = _zklinkInstance;
+
+        emit SetZKLink(zklinkInstance);
+    }
+
+    function updateMintAllowance(
+        uint16[] calldata tokenIds,
+        uint256[] calldata mintAmounts
+    ) public onlyOwner {
+        require(tokenIds.length == mintAmounts.length, "Invalid Params");
+        for (uint i = 0; i < tokenIds.length; i++) {
+            mintAmount[tokenIds[i]] = mintAmounts[i];
+        }
+    }
+
     function checkIsInWhiteList(address account) public view returns (bool) {
         return whitelist[account];
     }
@@ -82,6 +103,13 @@ contract FaucetUpgradeable is OwnableUpgradeable, UUPSUpgradeable {
         address token
     ) public view returns (uint256) {
         return delayedExpiration[account][token];
+    }
+
+    function getMintAmount(
+        address token
+    ) public view returns (uint16 tokenId, uint256 mintAllowance) {
+        tokenId = IZkLink(zklinkInstance).tokenIds(token);
+        mintAllowance = mintAmount[tokenId];
     }
 
     modifier onlyWhitelist() {
