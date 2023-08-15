@@ -8,6 +8,5 @@ log4js.configure({
 });
 const logger = log4js.getLogger("logger");
 logger.level = "debug";
-logger.debug("test logger");
 
 export default logger;
